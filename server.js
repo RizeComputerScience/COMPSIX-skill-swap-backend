@@ -37,7 +37,7 @@ const startServer = async () => {
     console.log('Database connection established');
     
     app.listen(PORT, () => {
-      console.log(`Server running on port ${PORT}`);
+      console.log(`Server running on http://localhost:${PORT}/api/skills`);
     });
   } catch (error) {
     console.error('Unable to connect to database:', error);
