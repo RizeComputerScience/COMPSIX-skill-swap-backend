@@ -1,47 +1,68 @@
+
+// Used AI to help with coding and testing.
+// Main server file for the Skill Swap backend.
+
+require('dotenv').config();
+
 const express = require('express');
 const cors = require('cors');
 const { Sequelize } = require('sequelize');
-require('dotenv').config();
 
+// Create the Express application.
 const app = express();
-const PORT = process.env.PORT || 3000;
 
-// Middleware
+// Middleware.
 app.use(cors());
 app.use(express.json());
 
-// Database setup
+// Connect to the SQLite database.
 const sequelize = new Sequelize({
-  dialect: 'sqlite',
-  storage: process.env.DB_STORAGE || './database.sqlite',
-  logging: false
+    dialect: 'sqlite',
+    storage: process.env.DB_STORAGE || './database.sqlite',
+    logging: false
 });
 
-// Initialize models
+// Load the Skill model.
 const db = {};
+
 db.Skill = require('./models/skill')(sequelize);
 
-// Routes
-const skillRoutes = require('./routes/skills')(db);
-app.use('/api/skills', skillRoutes);
+// Connect the skills routes.
+const skillsRoutes = require('./routes/skills')(db);
 
-// Health check
+app.use('/api/skills', skillsRoutes);
+
+// Basic home route.
 app.get('/', (req, res) => {
-  res.json({ message: 'Skill Swap API is running' });
+    res.json({
+        message: 'Welcome to the Skill Swap API!'
+    });
 });
 
-// Start server
-const startServer = async () => {
-  try {
-    await sequelize.authenticate();
-    console.log('Database connection established');
-    
-    app.listen(PORT, () => {
-      console.log(`Server running on http://localhost:${PORT}/api/skills`);
-    });
-  } catch (error) {
-    console.error('Unable to connect to database:', error);
-  }
-};
+// Start the server.
+const PORT = process.env.PORT || 3000;
+
+async function startServer() {
+    try {
+        // Check the database connection.
+        await sequelize.authenticate();
+
+        console.log('Connected to the Skill Swap database.');
+
+        // Create missing tables without deleting existing records.
+        await sequelize.sync();
+
+        console.log('Database synchronized.');
+
+        // Start Express.
+        app.listen(PORT, () => {
+            console.log(`Skill Swap API running on port ${PORT}`);
+        });
+
+    } catch (error) {
+        console.error('Unable to start the server:', error);
+        process.exit(1);
+    }
+}
 
 startServer();
